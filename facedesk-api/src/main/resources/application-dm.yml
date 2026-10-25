@@ -1,0 +1,13 @@
+facedesk:
+  storage:
+    type: dm
+spring:
+  datasource:
+    url: ${FACEDESK_DB_URL:jdbc:dm://127.0.0.1:5236}
+    username: ${FACEDESK_DB_USER}
+    password: ${FACEDESK_DB_PASSWORD}
+    driver-class-name: dm.jdbc.driver.DmDriver
+    hikari:
+      schema: ${FACEDESK_DB_SCHEMA:FACEDESK}
+      maximum-pool-size: 16
+      connection-timeout: 5000

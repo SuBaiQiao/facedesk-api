@@ -1,0 +1,8 @@
+facedesk:
+  cluster:
+    enabled: true
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: true

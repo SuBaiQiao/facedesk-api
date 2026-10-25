@@ -1,0 +1,28 @@
+server:
+  port: ${GATEWAY_PORT:8088}
+spring:
+  application:
+    name: facedesk-gateway
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: ${NACOS_GROUP:FACEDESK}
+        username: ${NACOS_USERNAME:}
+        password: ${NACOS_PASSWORD:}
+    gateway:
+      httpclient:
+        connect-timeout: 5000
+        response-timeout: 310s
+      routes:
+        - id: facedesk-api
+          uri: lb://facedesk-api
+          predicates:
+            - Path=/api/**
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

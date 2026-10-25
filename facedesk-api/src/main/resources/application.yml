@@ -1,0 +1,61 @@
+server:
+  port: 8080
+  servlet:
+    context-path: /api
+  tomcat:
+    threads:
+      max: 300
+      min-spare: 20
+    max-connections: 1024
+    accept-count: 250
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: ${facedesk.cluster.enabled:false}
+        server-addr: ${NACOS_SERVER_ADDR:127.0.0.1:8848}
+        namespace: ${NACOS_NAMESPACE:}
+        group: ${NACOS_GROUP:FACEDESK}
+        username: ${NACOS_USERNAME:}
+        password: ${NACOS_PASSWORD:}
+  application:
+    name: facedesk-api
+  servlet:
+    multipart:
+      max-file-size: 500MB
+      max-request-size: 510MB
+      file-size-threshold: 0
+  jackson:
+    default-property-inclusion: non_null
+face:
+  ffmpeg-path: ffmpeg
+  model-dir: ./models
+  detector-model: face_detection_yunet_2023mar.onnx
+  recognition-backend: auraface
+  recognizer-model: face_recognition_auraface_v1.onnx
+  storage-path: ./data/face.db
+  import-json: ""
+  threshold: 0.55
+  min-margin: 0.08
+  detection-threshold: 0.9
+  min-face-size: 80
+  detection-size: 640
+  inference-threads: 4
+  workers: 1
+  max-in-flight: 250
+  request-timeout-ms: 60000
+  max-image-pixels: 16000000
+
+facedesk:
+  storage:
+    type: sqlite
+    initialize-schema: false
+  cluster:
+    enabled: false
+    heartbeat-ms: 5000
+    lease-ms: 30000
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info

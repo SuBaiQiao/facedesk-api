@@ -1,0 +1,12 @@
+facedesk:
+  storage:
+    type: mysql
+spring:
+  datasource:
+    url: ${FACEDESK_DB_URL:jdbc:mysql://127.0.0.1:3306/facedesk?useUnicode=true&characterEncoding=UTF-8&serverTimezone=UTC}
+    username: ${FACEDESK_DB_USER}
+    password: ${FACEDESK_DB_PASSWORD}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      maximum-pool-size: 16
+      connection-timeout: 5000

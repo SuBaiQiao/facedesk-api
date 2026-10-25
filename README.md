@@ -1,6 +1,24 @@
 # FaceDesk · 人脸识别服务平台
 
-FaceDesk 提供人脸档案、照片与视频识别、USB/RTSP实时识别和历史回溯。仓库命名为 `facedesk`，后端服务及 Maven artifactId 为 `facedesk-api`。
+FaceDesk 提供人脸档案、照片与视频识别、USB/RTSP实时识别和历史回溯。仓库命名为 `facedesk`，根项目为 Maven 聚合父项目，包含 `facedesk-api`（人脸服务）和 `facedesk-gateway`（网关）两个模块。后端服务名及 artifactId 为 `facedesk-api`。
+
+## 项目结构与构建
+
+```text
+facedesk/
+├── pom.xml              # 聚合父项目：版本、Java及公共依赖管理
+├── facedesk-api/        # 人脸服务：业务、持久化、模型推理、管理页面
+├── facedesk-gateway/    # 网关：Nacos发现、负载分配、任务归属路由
+├── models/              # 本地模型，不进入Git
+├── scripts/             # 下载、初始化、迁移和离线打包
+└── docs/                # 部署文档
+```
+
+在根目录执行 `mvn package` 一次构建两个模块。只构建API使用 `mvn -pl facedesk-api -am package`，只构建网关使用 `mvn -pl facedesk-gateway -am package`。产物分别位于两个模块的 `target/`。API通过 `mvn -pl facedesk-api spring-boot:run` 运行时使用仓库根目录作为工作目录；通过 `java -jar` 启动也请在根目录执行，以读取已有模型和数据。根目录的 `target/` 保留测试图片、验证输出和离线ZIP；测试报告在各模块 `target/surefire-reports/`。
+
+## 数据库与分布式部署
+
+数据库通过配置三选一：SQLite（默认单机）、MySQL 8、达梦 DM8。MySQL/DM可追加cluster profile，通过独立FaceDesk Gateway入口和Nacos注册发现部署多个识别实例；档案版本同步、节点租约和视频/实时任务归属路由已接入。建库、环境变量、启动命令及任务故障边界见 [部署说明](docs/DEPLOYMENT.md)。
 
 ## 默认模型升级：AuraFace-v1
 
@@ -29,13 +47,13 @@ Java 11 / Spring Boot 2.7 离线人脸服务。使用 YuNet 检测、AuraFace �
 
 ```powershell
 mvn package
-java -Xms512m -Xmx2g -jar target/facedesk-api-1.0.0.jar
+java -Xms512m -Xmx2g -jar facedesk-api/target/facedesk-api-1.0.0.jar
 ```
 
 工作目录须包含 `models/`。默认监听 8080。首次启动自动创建 **`data/face.db` SQLite 数据库**，不再使用 JSON 保存人员数据，无需另装数据库服务或联网激活。更改数据库位置：
 
 ```powershell
-java -jar target/facedesk-api-1.0.0.jar --face.storage-path=D:/face-data/face.db
+java -jar facedesk-api/target/facedesk-api-1.0.0.jar --face.storage-path=D:/face-data/face.db
 ```
 
 相对路径按启动工作目录解析。SQLite JDBC 和 OpenCV 原生库已打入 JAR，部署服务器只需 Java 11。状态查询：
@@ -180,7 +198,7 @@ RTSP 需要服务器安装 FFmpeg 并加入 PATH，或者配置 `face.ffmpeg-pat
 向**新的空 SQLite 库**一次性导入：
 
 ```powershell
-java -jar target/facedesk-api-1.0.0.jar --face.storage-path=./data/face.db --face.import-json=./data/sface-db.json
+java -jar facedesk-api/target/facedesk-api-1.0.0.jar --face.storage-path=./data/face.db --face.import-json=./data/sface-db.json
 ```
 
 整批校验模型、维度和重复主键，再在一个数据库事务内写入。任何记录校验或 SQL 失败都会整批回滚，源文件不修改。目标库非空时拒绝导入，避免覆盖人员。
@@ -199,7 +217,7 @@ java -jar target/facedesk-api-1.0.0.jar --face.storage-path=./data/face.db --fac
 
 ## 离线部署
 
-YuNet 模型 MIT、SFace 模型 Apache-2.0、OpenCV Apache-2.0，SQLite JDBC Apache-2.0，按许可证条件免费使用和商业部署。无 API Key、联网激活、运行时下载或云端推理；首次构建准备依赖和模型需要联网或提前复制缓存。许可与模型哈希见 `THIRD_PARTY_NOTICES.md`、`licenses/`。
+YuNet 模型 MIT、SFace 模型 Apache-2.0、OpenCV Apache-2.0，SQLite JDBC Apache-2.0，按各自许可证条件使用；数据库驱动另见第三方声明。无 API Key、联网激活、运行时下载或云端推理；首次构建准备依赖和模型需要联网或提前复制缓存。许可与模型哈希见 `THIRD_PARTY_NOTICES.md`、`licenses/`。
 
 模型在本机 `models/` 已准备好；源码不分发模型二进制时，在联网准备机执行 `./scripts/download-models.ps1`。缺少模型会启动失败，不回退模拟引擎。
 
@@ -248,7 +266,7 @@ mvn '-Dface.integration=true' '-Dface.load=true' test
 
 ```powershell
 $load = Get-Content target/sqlite-load-report.json -Raw | ConvertFrom-Json
-java -Xms512m -Xmx2g -jar target/facedesk-api-1.0.0.jar --server.port=18090 "--face.storage-path=$($load.databasePath)"
+java -Xms512m -Xmx2g -jar facedesk-api/target/facedesk-api-1.0.0.jar --server.port=18090 "--face.storage-path=$($load.databasePath)"
 # 另一终端：
 java scripts/FaceHttpLoad.java http://127.0.0.1:18090/api target/test-images/lena.jpg 250 250 P0
 ```

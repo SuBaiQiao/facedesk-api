@@ -28,3 +28,10 @@ Real-time RTSP uses a separately installed FFmpeg executable through a child pro
 Publisher: fal, model card and license: https://huggingface.co/fal/AuraFace-v1 . Publisher labels weights Apache-2.0 and describes commercial use; its model card notes demographic/generalization limitations. This does not establish accuracy for this deployment. No InsightFace-provided pretrained weights or Python package are bundled.
 
 Pinned revision: af6d057c9b0ec4071d4c49c80e3539258798b609; upstream glintr100.onnx renamed face_recognition_auraface_v1.onnx. SHA-256: a7933ea5330113b01c9b60351d8f4c33003f145d8470ac5f0e52ee2effe25c60. License text is preserved verbatim in licenses/AuraFace-Apache-2.0.txt. SFace remains in the bundle for its OpenCV alignment wrapper and explicit rollback; AuraFace extraction uses its own RGB/127.5 normalization, not SFace preprocessing.
+
+## Distributed storage and gateway dependencies
+
+- Spring Cloud2021.0.9 / Gateway3.1.x and Spring Cloud Alibaba2021.0.6.0: Apache-2.0, upstream https://github.com/spring-cloud/spring-cloud-gateway and https://github.com/alibaba/spring-cloud-alibaba . Nacos client2.2.0 is bundled; the Nacos server is deployed separately.
+- MySQL Connector/J8.0.33: retain licenses/MySQL-Connector-J-LICENSE.txt (upstream8.0.33 licensing manual) alongside the bundled driver JAR. The driver publisher supplies GPLv2 terms and its Universal FOSS Exception; consult those terms for redistribution. Upstream https://github.com/mysql/mysql-connector-j . MySQL server is not bundled.
+- com.dameng:DmJdbcDriver18:8.1.3.62: publisher Maven metadata declares Apache-2.0; original driver JAR and metadata retained in dependencies. Select a driver appropriate to the deployment DM8 version; database server licensing is separate. Official Java integration documentation: https://eco.dameng.com/document/dm/zh-cn/start/JAVA_NEW.html . DM server is not bundled.
+- HikariCP: Apache-2.0. H2 is used only in test scope and is not included in production artifacts.
