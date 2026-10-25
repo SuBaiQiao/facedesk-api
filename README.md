@@ -1,4 +1,6 @@
-# Offline Face API — YuNet + SFace + SQLite
+# FaceDesk · 人脸识别服务平台
+
+FaceDesk 提供人脸档案、照片与视频识别、USB/RTSP实时识别和历史回溯。仓库命名为 `facedesk`，后端服务及 Maven artifactId 为 `facedesk-api`。
 
 ## 默认模型升级：AuraFace-v1
 
@@ -21,19 +23,19 @@ face:
 回滚：停止服务，将升级前快照恢复到一个新的数据库路径，用 --face.storage-path 指向它，并同时设置 --face.recognition-backend=sface --face.recognizer-model=face_recognition_sface_2021dec.onnx --face.inference-threads=1 --face.workers=4。保留当前升级库，避免覆盖升级后的新增档案/历史；回滚快照不含这些新增记录。禁止对升级库直接使用旧特征模型。
 
 
-Java 11 / Spring Boot 2.7 离线人脸服务。使用 YuNet 检测、SFace 识别与 SQLite 数据库，保留 `/api/face/v2/*` 接口和 `{code,msg,total,data}` 响应外形。
+Java 11 / Spring Boot 2.7 离线人脸服务。使用 YuNet 检测、AuraFace 识别与 SQLite 数据库（可切换 SFace），保留 `/api/face/v2/*` 接口和 `{code,msg,total,data}` 响应外形。
 
 ## 启动与数据位置
 
 ```powershell
 mvn package
-java -Xms512m -Xmx2g -jar target/offline-face-api-1.0.0.jar
+java -Xms512m -Xmx2g -jar target/facedesk-api-1.0.0.jar
 ```
 
 工作目录须包含 `models/`。默认监听 8080。首次启动自动创建 **`data/face.db` SQLite 数据库**，不再使用 JSON 保存人员数据，无需另装数据库服务或联网激活。更改数据库位置：
 
 ```powershell
-java -jar target/offline-face-api-1.0.0.jar --face.storage-path=D:/face-data/face.db
+java -jar target/facedesk-api-1.0.0.jar --face.storage-path=D:/face-data/face.db
 ```
 
 相对路径按启动工作目录解析。SQLite JDBC 和 OpenCV 原生库已打入 JAR，部署服务器只需 Java 11。状态查询：
@@ -178,7 +180,7 @@ RTSP 需要服务器安装 FFmpeg 并加入 PATH，或者配置 `face.ffmpeg-pat
 向**新的空 SQLite 库**一次性导入：
 
 ```powershell
-java -jar target/offline-face-api-1.0.0.jar --face.storage-path=./data/face.db --face.import-json=./data/sface-db.json
+java -jar target/facedesk-api-1.0.0.jar --face.storage-path=./data/face.db --face.import-json=./data/sface-db.json
 ```
 
 整批校验模型、维度和重复主键，再在一个数据库事务内写入。任何记录校验或 SQL 失败都会整批回滚，源文件不修改。目标库非空时拒绝导入，避免覆盖人员。
@@ -205,7 +207,7 @@ YuNet 模型 MIT、SFace 模型 Apache-2.0、OpenCV Apache-2.0，SQLite JDBC Apa
 ./scripts/package-offline.ps1 -Output ./target/offline-bundle-sqlite
 ```
 
-生成 `target/offline-face-api.zip`，包含 JAR、两个模型、配置、许可和脚本，**不包含生产数据库**。如输出目录已存在，使用新的 `-Output` 路径，避免将旧运行数据混入部署包。
+生成 `target/facedesk-api.zip`，包含 JAR、三个模型、配置、许可和脚本，**不包含生产数据库**。如输出目录已存在，使用新的 `-Output` 路径，避免将旧运行数据混入部署包。
 
 解压后 Windows 运行 `./run.ps1`，Linux 运行 `sh run.sh`，新采集数据落在解压目录的 `data/face.db`。本次验证平台为 Windows x64；其他平台需确认原生库与系统运行库兼容性。
 
@@ -246,7 +248,7 @@ mvn '-Dface.integration=true' '-Dface.load=true' test
 
 ```powershell
 $load = Get-Content target/sqlite-load-report.json -Raw | ConvertFrom-Json
-java -Xms512m -Xmx2g -jar target/offline-face-api-1.0.0.jar --server.port=18090 "--face.storage-path=$($load.databasePath)"
+java -Xms512m -Xmx2g -jar target/facedesk-api-1.0.0.jar --server.port=18090 "--face.storage-path=$($load.databasePath)"
 # 另一终端：
 java scripts/FaceHttpLoad.java http://127.0.0.1:18090/api target/test-images/lena.jpg 250 250 P0
 ```

@@ -13,10 +13,10 @@
     </parent>
 
     <groupId>com.face</groupId>
-    <artifactId>offline-face-api</artifactId>
+    <artifactId>facedesk-api</artifactId>
     <version>1.0.0</version>
-    <name>offline-face-api</name>
-    <description>Offline YuNet and AuraFace recognition API</description>
+    <name>FaceDesk API</name>
+    <description>FaceDesk offline face recognition service</description>
 
     <properties>
         <java.version>11</java.version>

@@ -10,7 +10,7 @@ server:
     accept-count: 250
 spring:
   application:
-    name: offline-face-api
+    name: facedesk-api
   servlet:
     multipart:
       max-file-size: 500MB
