@@ -1,6 +1,8 @@
 package com.face.api.model;
 
-/** 底库中的一条人脸记录。 */
+/**
+ * 底库中的一条人脸记录。
+ */
 public class FaceRecord {
     private String role;
     private String code;
@@ -11,12 +13,23 @@ public class FaceRecord {
     private String featureSpaceId;
     // 内存检索只加载参考向量，参考原图保存在独立表并按需读取。
     private java.util.List<float[]> referenceFeatures = new java.util.ArrayList<>();
-    @com.fasterxml.jackson.annotation.JsonIgnore
-    public java.util.List<float[]> getReferenceFeatures() { return referenceFeatures; }
-    public void setReferenceFeatures(java.util.List<float[]> value) { referenceFeatures=value; }
 
-    public String getFeatureSpaceId() { return featureSpaceId; }
-    public void setFeatureSpaceId(String value) { featureSpaceId = value; }
+    @com.fasterxml.jackson.annotation.JsonIgnore
+    public java.util.List<float[]> getReferenceFeatures() {
+        return referenceFeatures;
+    }
+
+    public void setReferenceFeatures(java.util.List<float[]> value) {
+        referenceFeatures = value;
+    }
+
+    public String getFeatureSpaceId() {
+        return featureSpaceId;
+    }
+
+    public void setFeatureSpaceId(String value) {
+        featureSpaceId = value;
+    }
 
     public FaceRecord() {
     }

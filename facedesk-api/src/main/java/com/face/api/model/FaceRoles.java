@@ -4,12 +4,16 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
-/** 人脸角色校验工具。 */
+/**
+ * 人脸角色校验工具。
+ */
 public final class FaceRoles {
     private FaceRoles() {
     }
 
-    /** 返回与旧项目兼容的角色列表。 */
+    /**
+     * 返回与旧项目兼容的角色列表。
+     */
     public static List<String> supported() {
         return Collections.unmodifiableList(Arrays.asList(
                 FaceRole.POLICE_PRISON,
@@ -22,7 +26,9 @@ public final class FaceRoles {
         ));
     }
 
-    /** 空角色表示查询全部角色。 */
+    /**
+     * 空角色表示查询全部角色。
+     */
     public static boolean isSupported(String role) {
         return role == null || role.isEmpty() || supported().contains(role);
     }

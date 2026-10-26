@@ -1,6 +1,8 @@
 package com.face.api.model;
 
-/** 1:N 识别结果。 */
+/**
+ * 1:N 识别结果。
+ */
 public class RecognitionResult {
     private String faceRole;
     private String code;

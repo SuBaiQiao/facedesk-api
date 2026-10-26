@@ -47,11 +47,28 @@ mysql和dm profile只选一个。也可直接配置facedesk.storage.type=mysql�
 
 ## Nacos与网关
 
+### SQLite 单机服务通过网关访问
+
+无参数启动时，API 使用 SQLite，网关默认启用 `standalone` profile 并代理到8090，不依赖 Nacos。IDE中直接启动两个应用即可。旧版本默认使用Nacos，若返回503“暂无可用的FaceDesk识别实例”，请重新构建并重启网关，或显式启用 `standalone` profile：
+
+```powershell
+# API 已运行在8090时，重启网关并指定单机代理模式；IDE中同样设置 active profiles=standalone。
+java -jar facedesk-gateway/target/facedesk-gateway-1.0.0.jar --spring.profiles.active=standalone --server.port=8089
+# 后端端口不同时，启动网关前设置完整API源地址（不带/api，原请求路径会保留）。
+$env:FACEDESK_API_URI = 'http://127.0.0.1:8090'
+```
+
+浏览器访问 `http://localhost:8089/api/`。此模式只代理一个 API，不启用 Nacos，也不提供多实例部署；不会自动切换数据库或搬运已有 SQLite 数据。
+
+### MySQL / 达梦分布式模式
+
+API 需启用 `mysql,cluster` 或 `dm,cluster` profile，网关显式启用 `cluster` profile。仅启用 `mysql` / `dm` 仍是单实例模式，不能作为网关集群服务发现路由的目标。API 与网关的 Nacos 地址、namespace、group 和服务名必须一致，且 API 实例元数据中应有 `facedesk-route-id`。启动网关不等于启动了两个识别实例。
+
 Nacos控制台 http://localhost:8848/nacos，对应NACOS_SERVER_ADDR填写localhost:8848，不能包含http或/nacos路径。Nacos 2.x客户端还需要可访问服务端gRPC端口（默认9848）。多机器部署时填写服务器可达的Nacos地址，并确保注册的API实例IP和端口能从网关访问。
 
 ```mermaid
 flowchart LR
-    Client[浏览器 / API客户端] --> Gateway[FaceDesk Gateway :8088]
+    Client[浏览器 / API客户端] --> Gateway[FaceDesk Gateway :8089]
     Gateway --> API1[识别实例 :8081]
     Gateway --> API2[识别实例 :8082]
     Gateway -. 服务发现 .-> Nacos[Nacos :8848]
@@ -70,10 +87,10 @@ java -jar facedesk-api/target/facedesk-api-1.0.0.jar --spring.profiles.active=my
 java -jar facedesk-api/target/facedesk-api-1.0.0.jar --spring.profiles.active=mysql,cluster --server.port=8082
 # 使用达梦时把mysql替换为dm
 mvn -pl facedesk-gateway -am package
-java -jar facedesk-gateway/target/facedesk-gateway-1.0.0.jar
+java -jar facedesk-gateway/target/facedesk-gateway-1.0.0.jar --spring.profiles.active=cluster
 ```
 
-访问 http://localhost:8088/api/ 。Gateway是独立可执行的Maven子模块，不包含OpenCV模型或数据库驱动。多网关实例可以连接相同Nacos，无需共享网关进程内任务状态。API注册名facedesk-api，网关注册名facedesk-gateway，namespace与group须一致。网关保留/api路径，上传视频流式转发，不重试录入/任务创建等写请求。后端启动可在外部application.yml覆盖模型路径、数据库与注册配置，数据库密码无需写进配置文件。
+访问 http://localhost:8089/api/ 。Gateway是独立可执行的Maven子模块，不包含OpenCV模型或数据库驱动。多网关实例可以连接相同Nacos，无需共享网关进程内任务状态。API注册名facedesk-api，网关注册名facedesk-gateway，namespace与group须一致。网关保留/api路径，上传视频流式转发，不重试录入/任务创建等写请求。后端启动可在外部application.yml覆盖模型路径、数据库与注册配置，数据库密码无需写进配置文件。
 
 ## 多实例一致性与任务边界
 
@@ -96,3 +113,11 @@ mvn package
 ## 验证
 
 mvn test覆盖SQLite与H2的MySQL/Oracle兼容模式仓储契约测试；mvn -pl facedesk-gateway -am test覆盖归属路由、Cookie亲和性、无可用实例和连接失败。H2不代表真实MySQL/达梦验证。模型测试需本地模型和测试图片，使用-Dface.integration=true；性能与准确率按现场样本独立评估。
+
+## MyBatis-Plus 数据访问
+
+MySQL/达梦使用 MyBatis-Plus 3.5.7（Spring Boot 2 starter），连接池仍为 HikariCP。数据库选择和环境变量保持不变，不需要修改既有表或迁移数据。SQLite 保留原有 JDBC 文件仓储和模型迁移流程，仅支持单实例。
+
+实体与 Mapper 位于 `facedesk-api/src/main/java/com/face/api/persistence`。档案采用 role/code 联合主键，更新和删除始终同时限定两列，不使用单列主键方法。参考照片、历史、节点及元数据使用各自的主键映射；识别历史分页由 MyBatis-Plus 的 MySQL/DM 方言插件生成。
+
+元数据锁和节点租约锁使用 Mapper 中的显式 FOR UPDATE SQL。Mapper 与事务管理器共用同一 DataSource，档案写入、参考照片变更及 revision 递增共同提交或回滚。查询缓存已关闭，避免跨实例读取旧档案；Mapper 参数日志关闭，防止原图与特征通过 SQL 日志输出。历史筛选继续参数绑定并转义 LIKE 通配符，任务终态更新显式允许清空错误字段。

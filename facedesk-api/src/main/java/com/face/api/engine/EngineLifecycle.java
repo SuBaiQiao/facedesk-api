@@ -6,9 +6,12 @@ import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.*;
 import java.util.function.Supplier;
 
-/** 暂停阻止新任务，重载等待正在执行的整笔识别完成；旧排队任务不跨代执行。 */
+/**
+ * 暂停阻止新任务，重载等待正在执行的整笔识别完成；旧排队任务不跨代执行。
+ */
 public final class EngineLifecycle {
-    public enum State { RUNNING, PAUSING, PAUSED, RELOADING, FAILED }
+    public enum State {RUNNING, PAUSING, PAUSED, RELOADING, FAILED}
+
     private final FaceEngine engine;
     private final String expectedSpace;
     private final long timeoutMs;
@@ -22,24 +25,40 @@ public final class EngineLifecycle {
     private volatile Instant changedAt = startedAt;
 
     public EngineLifecycle(FaceEngine engine, long timeoutMs) {
-        this.engine = engine; this.timeoutMs = timeoutMs; this.expectedSpace = engine.featureSpaceId();
+        this.engine = engine;
+        this.timeoutMs = timeoutMs;
+        this.expectedSpace = engine.featureSpaceId();
     }
+
     // 排队前取代次号；任务真正执行时再次核验，防止旧任务跨越暂停/重载后继续运行。
     public long ticket() {
         if (state != State.RUNNING) throw new FaceBusyException("引擎已暂停或正在重载，请先恢复引擎");
         return generation.get();
     }
+
     public <T> T execute(long ticket, Supplier<T> action) {
         gate.readLock().lock();
         try {
             if (state != State.RUNNING || generation.get() != ticket)
                 throw new FaceBusyException("引擎状态已变化，请在引擎恢复后重新提交");
             return action.get();
-        } finally { gate.readLock().unlock(); }
+        } finally {
+            gate.readLock().unlock();
+        }
     }
-    public void pause() { transition("pause"); }
-    public void resume() { transition("resume"); }
-    public void reload() { transition("reload"); }
+
+    public void pause() {
+        transition("pause");
+    }
+
+    public void resume() {
+        transition("resume");
+    }
+
+    public void reload() {
+        transition("reload");
+    }
+
     private void transition(String operation) {
         if (!control.tryLock()) throw new FaceBusyException("已有引擎控制操作正在执行，请稍后重试");
         State previous = state;
@@ -49,7 +68,8 @@ public final class EngineLifecycle {
             if (operation.equals("resume") && state == State.RUNNING) return;
             state = operation.equals("pause") ? State.PAUSING : State.RELOADING;
             // 先使旧票据失效，再等待在途任务，排队任务无需被逐个从线程池移除。
-            generation.incrementAndGet(); changedAt = Instant.now();
+            generation.incrementAndGet();
+            changedAt = Instant.now();
             acquired = gate.writeLock().tryLock(timeoutMs, TimeUnit.MILLISECONDS);
             if (!acquired) {
                 state = previous;
@@ -71,21 +91,42 @@ public final class EngineLifecycle {
             }
             lastError = null;
         } catch (InterruptedException e) {
-            Thread.currentThread().interrupt(); state = previous;
-            lastError = "引擎控制已中断"; throw new FaceBusyException(lastError);
+            Thread.currentThread().interrupt();
+            state = previous;
+            lastError = "引擎控制已中断";
+            throw new FaceBusyException(lastError);
         } catch (RuntimeException e) {
             if (acquired) state = State.FAILED;
-            lastError = e.getMessage(); throw e;
+            lastError = e.getMessage();
+            throw e;
         } finally {
             changedAt = Instant.now();
             if (acquired) gate.writeLock().unlock();
             control.unlock();
         }
     }
-    public State getState() { return state; }
-    public boolean isAvailable() { return state == State.RUNNING && engine.isAvailable(); }
-    public String getLastError() { return lastError; }
-    public Instant getStartedAt() { return startedAt; }
-    public Instant getChangedAt() { return changedAt; }
-    public String getFeatureSpaceId() { return expectedSpace; }
+
+    public State getState() {
+        return state;
+    }
+
+    public boolean isAvailable() {
+        return state == State.RUNNING && engine.isAvailable();
+    }
+
+    public String getLastError() {
+        return lastError;
+    }
+
+    public Instant getStartedAt() {
+        return startedAt;
+    }
+
+    public Instant getChangedAt() {
+        return changedAt;
+    }
+
+    public String getFeatureSpaceId() {
+        return expectedSpace;
+    }
 }

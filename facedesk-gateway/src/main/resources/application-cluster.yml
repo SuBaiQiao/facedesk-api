@@ -1,0 +1,12 @@
+# Nacos 分布式入口。API 需同时启用 mysql,cluster 或 dm,cluster。
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: true
+    gateway:
+      routes:
+        - id: facedesk-api
+          uri: lb://facedesk-api
+          predicates:
+            - Path=/api/**

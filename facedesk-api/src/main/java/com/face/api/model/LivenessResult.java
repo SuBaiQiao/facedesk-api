@@ -1,6 +1,8 @@
 package com.face.api.model;
 
-/** 独立的活体检测能力结果。 */
+/**
+ * 独立的活体检测能力结果。
+ */
 public class LivenessResult {
     private boolean supported;
     private boolean pass;

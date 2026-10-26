@@ -1,6 +1,9 @@
 server:
-  port: ${GATEWAY_PORT:8088}
+  port: ${GATEWAY_PORT:8089}
 spring:
+  profiles:
+    # 与 API 默认的 SQLite 单机模式一致；分布式部署显式启用 cluster。
+    default: standalone
   application:
     name: facedesk-gateway
   cloud:

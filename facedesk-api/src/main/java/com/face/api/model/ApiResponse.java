@@ -2,7 +2,9 @@ package com.face.api.model;
 
 import java.util.List;
 
-/** 与参考项目兼容的统一接口响应。 */
+/**
+ * 与参考项目兼容的统一接口响应。
+ */
 public class ApiResponse<T> {
     private String code;
     private String msg;

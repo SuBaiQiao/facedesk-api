@@ -1,6 +1,8 @@
 package com.face.api.model;
 
-/** 基础图片质量检查结果。 */
+/**
+ * 基础图片质量检查结果。
+ */
 public class QualityResult {
     private boolean pass;
     private boolean eyesClosed;

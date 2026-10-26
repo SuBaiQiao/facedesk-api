@@ -1,6 +1,8 @@
 package com.face.api.model;
 
-/** 1:1 比对结果。 */
+/**
+ * 1:1 比对结果。
+ */
 public class OneToOneResult {
     private boolean matched;
     private double score;

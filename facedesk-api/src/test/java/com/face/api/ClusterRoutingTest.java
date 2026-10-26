@@ -17,9 +17,9 @@ class ClusterRoutingTest {
     @Test void wrongNodeRequestAndMissingLeaseCannotReachControllers()throws Exception {
         ClusterProperties cluster=new ClusterProperties();cluster.setEnabled(true);
         org.springframework.jdbc.datasource.DriverManagerDataSource source=new org.springframework.jdbc.datasource.DriverManagerDataSource("jdbc:h2:mem:"+java.util.UUID.randomUUID()+";DB_CLOSE_DELAY=-1","sa","");
-        com.face.api.repository.JdbcDatabase database=new com.face.api.repository.JdbcDatabase(source,"mysql",false);
-        database.jdbc.execute("CREATE TABLE facedesk_nodes(node_id VARCHAR(64) PRIMARY KEY,heartbeat_ms BIGINT,feature_space_id VARCHAR(512))");
-        database.jdbc.execute("CREATE TABLE recognition_history(node_id VARCHAR(64),status VARCHAR(32),kind VARCHAR(16),task_state VARCHAR(32),task_error VARCHAR(512))");
+        com.face.api.repository.MybatisPlusDatabase database=new com.face.api.repository.MybatisPlusDatabase(source,"mysql",false);
+        new org.springframework.jdbc.core.JdbcTemplate(source).execute("CREATE TABLE facedesk_nodes(node_id VARCHAR(64) PRIMARY KEY,heartbeat_ms BIGINT,feature_space_id VARCHAR(512))");
+        new org.springframework.jdbc.core.JdbcTemplate(source).execute("CREATE TABLE recognition_history(node_id VARCHAR(64),status VARCHAR(32),kind VARCHAR(16),task_state VARCHAR(32),task_error VARCHAR(512))");
         try(NodeLease lease=new NodeLease(database,cluster,"fixture")){
         ObjectProvider<NodeLease> provider=mock(ObjectProvider.class);when(provider.getIfAvailable()).thenReturn(lease);
         ClusterRequestFilter filter=new ClusterRequestFilter(cluster,provider,new ObjectMapper());

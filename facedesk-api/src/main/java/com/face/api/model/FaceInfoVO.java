@@ -1,6 +1,8 @@
 package com.face.api.model;
 
-/** 角色人脸列表返回对象。 */
+/**
+ * 角色人脸列表返回对象。
+ */
 public class FaceInfoVO {
     private String name;
     private String faceRole;

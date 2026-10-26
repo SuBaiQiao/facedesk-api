@@ -1,0 +1,13 @@
+# 单机代理模式：用于 SQLite 或未启用 cluster 的单个 API，不依赖 Nacos。
+spring:
+  cloud:
+    nacos:
+      discovery:
+        enabled: false
+    gateway:
+      routes:
+        # profile 中的列表会整体覆盖默认路由，因此保留完整的 id 和 predicates。
+        - id: facedesk-api
+          uri: ${FACEDESK_API_URI:http://127.0.0.1:8090}
+          predicates:
+            - Path=/api/**

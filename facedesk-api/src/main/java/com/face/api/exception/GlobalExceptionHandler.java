@@ -9,7 +9,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MultipartException;
 
-/** 统一将参数和引擎异常转换为旧项目格式的错误响应。 */
+/**
+ * 统一将参数和引擎异常转换为旧项目格式的错误响应。
+ */
 @RestControllerAdvice
 public class GlobalExceptionHandler {
     @ExceptionHandler(com.face.api.engine.FaceBusyException.class)
@@ -17,6 +19,7 @@ public class GlobalExceptionHandler {
     public ApiResponse<?> handleBusy(Exception exception) {
         return ApiResponse.error(exception.getMessage());
     }
+
     @ExceptionHandler({
             IllegalArgumentException.class,
             FaceEngineException.class,

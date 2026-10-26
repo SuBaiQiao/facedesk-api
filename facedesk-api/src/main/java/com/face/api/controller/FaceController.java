@@ -96,7 +96,9 @@ public class FaceController {
             if (file == null || file.isEmpty()) {
                 throw new IllegalArgumentException("图片不能为空");
             }
-            if (file.getSize() > 10 * 1024 * 1024) throw new IllegalArgumentException("图片不能超过 10 MB");
+            if (file.getSize() > 10 * 1024 * 1024) {
+                throw new IllegalArgumentException("图片不能超过 10 MB");
+            }
             return file.getBytes();
         } catch (java.io.IOException e) {
             throw new IllegalArgumentException("无效的图片", e);

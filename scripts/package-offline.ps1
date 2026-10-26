@@ -34,9 +34,11 @@ if ($IncludeGateway) {
     $gatewayFolder = Join-Path $Output 'gateway'
     New-Item -ItemType Directory -Path $gatewayFolder | Out-Null
     Copy-Item -LiteralPath $gatewayJar -Destination $gatewayFolder
-    Copy-Item -LiteralPath (Join-Path $root 'facedesk-gateway/src/main/resources/application.yml') -Destination $gatewayFolder
+    foreach ($gatewayProfile in @('application.yml','application-standalone.yml','application-cluster.yml')) {
+        Copy-Item -LiteralPath (Join-Path $root "facedesk-gateway/src/main/resources/$gatewayProfile") -Destination $gatewayFolder
+    }
 @'
-param([int]$Port=8088,[Parameter(ValueFromRemainingArguments=$true)][string[]]$Options)
+param([int]$Port=8089,[Parameter(ValueFromRemainingArguments=$true)][string[]]$Options)
 Push-Location $PSScriptRoot
 try { & java -Xmx512m -jar facedesk-gateway-1.0.0.jar "--server.port=$Port" @Options }
 finally { Pop-Location }

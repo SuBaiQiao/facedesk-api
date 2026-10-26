@@ -7,7 +7,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
 
-/** 处理超过 multipart 上传大小限制的请求。 */
+/**
+ * 处理超过 multipart 上传大小限制的请求。
+ */
 @RestControllerAdvice
 public class UploadExceptionHandler {
     @ExceptionHandler(MaxUploadSizeExceededException.class)

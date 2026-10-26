@@ -294,3 +294,7 @@ java scripts/FaceHttpLoad.java http://127.0.0.1:18090/api target/test-images/len
 新增 POST /api/admin/faces/from-capture，multipart img/role/code/name，需 X-Face-Admin 请求头。它只创建新档案；同角色编号已存在时返回400，保留旧主图和参考照片。需要补充已有人脸时使用档案详情的参考照片功能。保存后当前实时会话后续帧立即检索新档案，无需重启会话；角色过滤仍有效。已处理的视频和历史保留原识别结果，需要重新运行视频才能按新档案识别。
 
 较清晰录入抓拍会计入现有视频结果256MB限额；临时视频任务过期后不再提供其抓拍入口。已提交的档案原图与特征持久保存。
+
+## 数据访问框架
+
+MySQL/达梦仓储使用 MyBatis-Plus 3.5.7，提供实体映射、BaseMapper 增删改查和方言分页；HikariCP 管理连接。元数据行锁、节点租约与跨实例版本同步保留原有事务约束，现有数据库无需改表。SQLite 继续使用本地 JDBC 仓储。部署参数见 [部署说明](docs/DEPLOYMENT.md)，框架接入方式参考 [MyBatis-Plus 官方说明](https://baomidou.com/getting-started/install/)。

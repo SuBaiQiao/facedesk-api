@@ -16,6 +16,17 @@ import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.Mockito.*;
 
 class TaskAffinityFilterTest {
+    @Test void standaloneProxyPreservesLocalTaskIdsWithoutCallingNacos(){
+        ReactiveDiscoveryClient discovery=mock(ReactiveDiscoveryClient.class);
+        MockServerWebExchange exchange=request("/api/admin/live/12345678-1234-1234-1234-123456789012/stop",null);
+        URI target=URI.create("http://127.0.0.1:8090/api/admin/live/12345678-1234-1234-1234-123456789012/stop");
+        exchange.getAttributes().put(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR,target);
+        AtomicReference<URI> routed=new AtomicReference<>();
+        new TaskAffinityFilter(discovery).filter(exchange,e->{
+            routed.set(e.getAttribute(ServerWebExchangeUtils.GATEWAY_REQUEST_URL_ATTR));return Mono.empty();
+        }).block();
+        assertEquals(target,routed.get());verifyNoInteractions(discovery);
+    }
     @Test void refusedConnectionReturns503WithoutRetrying(){
         MockServerWebExchange exchange=MockServerWebExchange.from(MockServerHttpRequest.get("/api/admin/status"));
         new GatewayUnavailableHandler().handle(exchange,new java.net.ConnectException("fixture")).block();assertEquals(503,exchange.getResponse().getRawStatusCode());

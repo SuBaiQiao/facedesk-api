@@ -1,6 +1,8 @@
 package com.face.api.model;
 
-/** 人脸检测框，坐标为左、上、右、下。 */
+/**
+ * 人脸检测框，坐标为左、上、右、下。
+ */
 public class FaceBox {
     private int left;
     private int top;
